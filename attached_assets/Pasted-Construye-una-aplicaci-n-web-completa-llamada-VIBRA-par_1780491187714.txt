@@ -1,0 +1,187 @@
+Construye una aplicación web completa llamada VIBRA para el ecosistema Universo HBG.
+
+Quiero una app moderna, futurista, musical y emocional, pensada para celular y computadora, con diseño consistente para futuras apps del mismo universo.
+
+OBJETIVO GENERAL
+
+VIBRA debe permitir que el usuario:
+
+1. Suba o seleccione música local desde su dispositivo.
+2. Indique o detecte su estado de ánimo.
+3. Reciba una recomendación musical según su vibra.
+4. Use un Modo Fiesta dinámico y visual.
+5. Tenga una experiencia Free y una experiencia Pro.
+6. Quede lista para publicar como aplicación web.
+
+IDENTIDAD VISUAL
+
+- Nombre principal: VIBRA
+- Marca visual del ecosistema: H... B... G...
+- Estilo: futurista, limpio, premium, con energía musical.
+- Fondo oscuro.
+- Colores principales: morado, azul eléctrico, magenta y acentos neón suaves.
+- Tarjetas modernas, bordes redondeados, sombras suaves.
+- Animaciones fluidas y ligeras.
+- Debe verse bien en móvil primero.
+- Debe sentirse parte del mismo universo visual que futuras apps como INSTINTO, TERMINADOR IA y UNIVERSO MUSICAL HBG.
+
+ESTRUCTURA DE LA APP
+
+1) PANTALLA DE INICIO
+
+Mostrar:
+
+- Logo o encabezado grande: VIBRA
+- Subtítulo: La música que entiende tu estado de ánimo
+- Firma visual: H... B... G...
+- Botón principal: INICIAR EXPERIENCIA
+
+2) FLUJO PRINCIPAL
+
+Al tocar iniciar:
+
+- Mostrar una animación de análisis de audio.
+- Texto tipo: Analizando tu vibra...
+- Barra de progreso y ondas de sonido animadas.
+- Después mostrar selección de emoción o resultado.
+
+3) ESTADOS DE ÁNIMO
+
+Permitir elegir o mostrar resultados como:
+
+- Feliz
+- Triste
+- Enojado
+- Relajado
+- Motivado
+- Enamorado
+- Confiado
+- Fiesta
+
+La app debe responder con:
+
+- Estado detectado o seleccionado
+- Breve descripción
+- Recomendación musical
+
+4) MÚSICA LOCAL
+
+Esto es muy importante:
+
+- La música debe ser local.
+- No usar Spotify.
+- No usar YouTube.
+- No usar APIs externas.
+- Permitir cargar archivos de audio desde el dispositivo.
+- Formatos compatibles como MP3, WAV y OGG.
+- Crear una biblioteca local sencilla con lista de canciones.
+- Mostrar nombre del archivo, controles de reproducción y progreso.
+- Permitir reproducir, pausar, avanzar, retroceder y seleccionar canciones.
+- Si el usuario no carga música, mostrar un mensaje claro para que agregue archivos.
+
+5) MODO FREE
+
+Debe incluir:
+
+- Reproducción de música local.
+- Selección de estado de ánimo.
+- Recomendación básica según vibra.
+- Interfaz completa y usable.
+- Guardar el último estado de ánimo en almacenamiento local del navegador si es posible.
+
+6) MODO PRO
+
+Diseñar desde ahora una sección Pro aunque algunas funciones puedan quedar como preparación visual o funcional futura.
+Debe incluir:
+
+- Historial de estados de ánimo.
+- Estadísticas básicas de uso.
+- Recomendaciones más avanzadas.
+- Perfiles múltiples.
+- Acceso a funciones futuras como karaoke.
+- Área destacada para “activar Pro”.
+- Botón visible: ACTIVAR PRO
+- Botón secundario: SABER MÁS
+
+7) MODO FIESTA
+
+Esto debe incluirse sí o sí.
+
+Crear un Modo Fiesta con:
+
+- Botón destacado: ACTIVAR MODO FIESTA
+- Reproducción continua de música local.
+- Mezcla aleatoria de canciones.
+- Visuales animados tipo luces o ecualizador.
+- Estado visual más intenso.
+- Opción de energía:
+  - Suave
+  - Normal
+  - Alta energía
+- Ambiente dinámico para reuniones y fiestas.
+- Diseño llamativo sin perder elegancia.
+
+8) SECCIÓN UNIVERSO HBG
+
+Agregar una sección visible llamada:
+
+Más proyectos del Universo HBG
+
+Debe mostrar tarjetas o espacios preparados para:
+
+- INSTINTO
+- TERMINADOR IA
+- UNIVERSO MUSICAL HBG
+
+Estas tarjetas pueden estar como:
+
+- disponibles,
+- próximamente,
+- o con texto de preparación futura.
+
+La idea es que VIBRA ya nazca conectado a un ecosistema más grande.
+
+9) SECCIÓN UNIVERSO MUSICAL HBG
+
+Preparar un espacio específico para música original y futuras canciones del proyecto.
+Debe poder evolucionar después para:
+
+- subir canciones propias,
+- mostrar portadas,
+- mostrar letras,
+- mostrar historias de canciones,
+- abrir lanzamientos futuros.
+
+Si todavía no hay contenido real, dejarlo preparado como Próximamente.
+
+REQUISITOS TÉCNICOS
+
+- Usar solo HTML, CSS y JavaScript.
+- No usar backend.
+- No usar frameworks innecesarios.
+- No usar APIs externas.
+- Todo debe funcionar de forma ligera y rápida.
+- Código limpio y organizado.
+- Separar en:
+  - index.html
+  - style.css
+  - script.js
+- Dejar comentarios útiles para futuras mejoras.
+- La app debe quedar lista para publicar en Replit.
+
+EXPERIENCIA DE USUARIO
+
+La app debe sentirse:
+
+- profesional,
+- moderna,
+- musical,
+- emocional,
+- adictiva de usar,
+- y lista para crecer con futuras versiones.
+
+PRIORIDAD
+
+Quiero que entregues la aplicación completa y funcional, no solo una idea o una demo vacía. Debe verse terminada, bien estructurada y lista para seguir evolucionando después.
+
+Genera la app ahora con todo lo anterior integrado.
