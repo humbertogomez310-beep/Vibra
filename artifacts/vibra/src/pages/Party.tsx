@@ -70,7 +70,7 @@ export function Party() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       orbs.forEach(o => {
         const grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
-        grad.addColorStop(0, o.color.replace(")", ` / 0.4)`).replace("hsl(", "hsl("));
+        grad.addColorStop(0, o.color.replace("hsl(", "hsla(").replace(")", ",0.4)"));
         grad.addColorStop(1, "transparent");
         ctx.beginPath();
         ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
@@ -119,7 +119,7 @@ export function Party() {
             WebkitTextFillColor: "transparent",
             filter: partyActive
               ? `drop-shadow(0 0 20px ${PARTY_COLORS[bgColor]}) drop-shadow(0 0 40px ${PARTY_COLORS[(bgColor + 1) % PARTY_COLORS.length]})`
-              : "drop-shadow(0 0 10px hsl(270 80% 65% / 0.4))",
+              : "drop-shadow(0 0 10px hsla(270,80%,65%,0.4))",
             transition: "filter 0.7s",
           }}
           animate={partyActive ? { scale: [1, 1.02, 1] } : { scale: 1 }}
@@ -171,7 +171,7 @@ export function Party() {
               transition: "background 0.7s, box-shadow 0.7s",
             } : {
               background: "linear-gradient(135deg, hsl(270,80%,55%), hsl(300,90%,55%))",
-              boxShadow: "0 0 25px hsl(270 80% 65% / 0.4)",
+              boxShadow: "0 0 25px hsla(270,80%,65%,0.4)",
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
