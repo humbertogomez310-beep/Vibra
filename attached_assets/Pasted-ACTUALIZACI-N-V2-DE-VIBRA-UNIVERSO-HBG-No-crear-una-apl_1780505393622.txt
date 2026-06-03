@@ -1,0 +1,194 @@
+ACTUALIZACIÓN V2 DE VIBRA – UNIVERSO HBG
+
+No crear una aplicación nueva.
+
+Tomar la aplicación actual y mejorarla profundamente.
+
+OBJETIVO:
+Que VIBRA deje de parecer una demo básica y empiece a sentirse como una aplicación musical real del ecosistema Universo HBG.
+
+====================
+IDENTIDAD VISUAL HBG
+
+Agregar la firma visual del ecosistema en toda la aplicación:
+
+H...
+B...
+G...
+
+Debe aparecer:
+
+- Pantalla inicial.
+- Menú principal.
+- Pantalla de reproducción.
+- Pantalla Pro.
+
+La firma debe verse elegante y futurista.
+
+====================
+DISEÑO PREMIUM
+
+Actualmente la aplicación se ve demasiado simple.
+
+Mejorar:
+
+- Fondo dinámico futurista.
+- Partículas suaves.
+- Ondas de sonido animadas.
+- Brillos neón.
+- Tarjetas modernas.
+- Transiciones suaves.
+- Efectos visuales relacionados con música.
+
+Mantener rendimiento fluido.
+
+La aplicación debe verse como un producto premium.
+
+====================
+BIBLIOTECA MUSICAL
+
+Eliminar cualquier límite artificial.
+
+La aplicación debe soportar:
+
+- 100 canciones.
+- 500 canciones.
+- 1000 canciones o más.
+
+Mostrar:
+
+- Nombre real del archivo.
+- Sin renombrar canciones.
+- Sin reemplazar nombres por números.
+
+Ejemplo:
+
+La Voz del Lobo.mp3
+Corrido Nuevo.mp3
+Fiesta Total.mp3
+
+Agregar:
+
+- Buscador.
+- Orden alfabético.
+- Scroll optimizado.
+
+====================
+REPRODUCTOR REAL
+
+Agregar una barra de reproducción permanente.
+
+Mostrar:
+
+- Nombre de la canción actual.
+- Tiempo actual.
+- Duración total.
+- Botón reproducir.
+- Botón pausar.
+- Botón siguiente.
+- Botón anterior.
+- Control de volumen.
+- Modo aleatorio.
+- Repetir.
+
+La canción actual debe verse claramente.
+
+====================
+PERSISTENCIA
+
+Conservar:
+
+- Biblioteca.
+- Favoritos.
+- Playlists.
+- Último estado emocional.
+- Configuración.
+
+Al cerrar y volver a abrir la aplicación.
+
+====================
+FUNCIONAMIENTO OFFLINE
+
+VIBRA debe funcionar con internet y sin internet.
+
+Implementar:
+
+- PWA.
+- Service Worker.
+- Caché local.
+
+La biblioteca musical debe seguir disponible sin conexión.
+
+====================
+VIBRA PRO
+
+Convertir PRO en una sección real.
+
+Debe contener:
+
+- Estadísticas.
+- Historial.
+- IA Musical.
+- Karaoke.
+- Modo Fiesta.
+
+====================
+MODO FIESTA PRO
+
+Actualmente solo cambia colores.
+
+Transformarlo en una función real.
+
+Agregar:
+
+- Reproducción continua.
+- Mezcla aleatoria.
+- Visualizador de audio avanzado.
+- Luces dinámicas.
+- Pantalla completa.
+- Modos:
+  • Suave
+  • Normal
+  • Alta Energía
+
+====================
+KARAOKE PRO
+
+Preparar estructura para:
+
+- Letras.
+- Pantalla completa.
+- Modo cantante.
+- Compatibilidad futura con canciones propias.
+
+====================
+IA MUSICAL PRO
+
+Crear una IA local básica.
+
+Debe:
+
+- Detectar hábitos de escucha.
+- Recomendar canciones.
+- Sugerir playlists.
+- Aprender preferencias.
+
+====================
+UNIVERSO HBG
+
+Agregar una sección moderna y visual para:
+
+🎭 INSTINTO
+
+🚀 TERMINADOR IA
+
+🎤 UNIVERSO MUSICAL HBG
+
+No usar simples textos.
+
+Crear tarjetas atractivas y futuristas.
+
+====================
+RESULTADO ESPERADO
+
+VIBRA debe sentirse como una aplicación musical moderna, visualmente impresionante, preparada para crecer y claramente identificada como parte del ecosistema Universo HBG.

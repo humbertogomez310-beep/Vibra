@@ -6,9 +6,9 @@ import { readID3Title, getAudioDuration } from "@/lib/id3";
 
 export interface Track {
   id: string;
-  name: string;     // Display title (from ID3 tag or clean filename)
-  url: string;      // Blob object URL, valid for this session
-  duration: number; // Seconds — 0 if unknown
+  name: string;
+  url: string;
+  duration: number;
 }
 
 export interface MoodEntry {
@@ -40,10 +40,11 @@ interface PlayerContextType {
   currentTrack: Track | null;
   isPlaying: boolean;
   shuffle: boolean;
+  repeat: boolean;
   volume: number;
   currentMood: string | null;
   progress: number;
-  duration: number;   // Current track playback duration
+  duration: number;
   isLoading: boolean;
   favorites: string[];
   recents: RecentEntry[];
@@ -60,6 +61,7 @@ interface PlayerContextType {
   setMood: (mood: string) => void;
   setVolume: (v: number) => void;
   toggleShuffle: () => void;
+  toggleRepeat: () => void;
   seek: (time: number) => void;
   toggleFavorite: (trackId: string) => void;
   removeTrack: (trackId: string) => Promise<void>;
@@ -83,25 +85,18 @@ function ls<T>(key: string, fallback: T): T {
 function lsSet(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Quota exceeded or private mode — skip silently
-  }
+  } catch { /* quota exceeded */ }
 }
 
 function calcTopMood(hist: MoodEntry[]): string | null {
   if (!hist.length) return null;
-  const counts: Record<string, number> = {};
-  hist.forEach((h) => { counts[h.mood] = (counts[h.mood] ?? 0) + 1; });
-  return Object.keys(counts).reduce((a, b) => (counts[a] >= counts[b] ? a : b));
+  const c: Record<string, number> = {};
+  hist.forEach((h) => { c[h.mood] = (c[h.mood] ?? 0) + 1; });
+  return Object.keys(c).reduce((a, b) => (c[a] >= c[b] ? a : b));
 }
 
-// Derive a clean display name from a file name (removes extension, replaces separators)
-function fileNameToTitle(fileName: string): string {
-  return fileName
-    .replace(/\.[^/.]+$/, "")         // remove extension
-    .replace(/[-_]/g, " ")            // replace hyphens / underscores with spaces
-    .replace(/\s{2,}/g, " ")
-    .trim();
+function fileNameToTitle(name: string): string {
+  return name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").replace(/\s{2,}/g, " ").trim();
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -113,6 +108,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [shuffle, setShuffle] = useState(false);
+  const [repeat, setRepeat] = useState(false);
   const [volume, setVolumeState] = useState(1);
   const [currentMood, setCurrentMood] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -122,38 +118,32 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [recents, setRecents] = useState<RecentEntry[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [history, setHistory] = useState<MoodEntry[]>([]);
-  const [stats, setStats] = useState<{ plays: number; topMood: string | null }>({
-    plays: 0,
-    topMood: null,
-  });
+  const [stats, setStats] = useState<{ plays: number; topMood: string | null }>({ plays: 0, topMood: null });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Refs keep event handlers in sync without stale closures
+  // Refs for stable event handler access
   const tracksRef = useRef<Track[]>([]);
   const currentIndexRef = useRef(-1);
   const shuffleRef = useRef(false);
+  const repeatRef = useRef(false);
   tracksRef.current = tracks;
   currentIndexRef.current = currentTrackIndex;
   shuffleRef.current = shuffle;
+  repeatRef.current = repeat;
 
-  // ─── Boot: restore library and settings ───────────────────────────────────
+  // ─── Boot ─────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
-
     const audio = new Audio();
     audioRef.current = audio;
 
-    // Restore preferences
+    const savedVol = parseFloat(localStorage.getItem("vibra_volume") ?? "1");
+    if (!isNaN(savedVol)) { setVolumeState(savedVol); audio.volume = savedVol; }
+
     const savedMood = localStorage.getItem("vibra_last_mood");
     if (savedMood) setCurrentMood(savedMood);
-
-    const savedVol = parseFloat(localStorage.getItem("vibra_volume") ?? "1");
-    if (!isNaN(savedVol)) {
-      setVolumeState(savedVol);
-      audio.volume = savedVol;
-    }
 
     setFavorites(ls<string[]>("vibra_favorites", []));
     setRecents(ls<RecentEntry[]>("vibra_recents", []));
@@ -161,49 +151,31 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     const savedHistory = ls<MoodEntry[]>("vibra_mood_history", []);
     setHistory(savedHistory);
-    setStats({
-      plays: parseInt(localStorage.getItem("vibra_plays") ?? "0", 10),
-      topMood: calcTopMood(savedHistory),
-    });
+    setStats({ plays: parseInt(localStorage.getItem("vibra_plays") ?? "0", 10), topMood: calcTopMood(savedHistory) });
 
-    // Restore audio library from IndexedDB + localStorage metadata
-    const restoreLibrary = async () => {
+    // Restore audio library from IndexedDB
+    const restore = async () => {
       try {
         const stored = await getAllAudio();
         const meta = ls<TrackMeta[]>("vibra_track_meta", []);
-
         if (!stored.length) { setIsLoading(false); return; }
-
-        const metaMap: Record<string, TrackMeta> = {};
-        meta.forEach((m) => { metaMap[m.id] = m; });
-
-        const restored: Track[] = stored.map(({ id, blob }) => {
-          const m = metaMap[id];
-          return {
-            id,
-            name: m?.name ?? "Canción sin título",
-            url: URL.createObjectURL(blob),
-            duration: m?.duration ?? 0,
-          };
-        });
-
-        setTracks(restored);
-      } catch {
-        // IndexedDB unavailable — start fresh
-      } finally {
-        setIsLoading(false);
-      }
+        const map: Record<string, TrackMeta> = {};
+        meta.forEach((m) => { map[m.id] = m; });
+        setTracks(stored.map(({ id, blob }) => ({
+          id,
+          name: map[id]?.name ?? "Canción sin título",
+          url: URL.createObjectURL(blob),
+          duration: map[id]?.duration ?? 0,
+        })));
+      } catch { /* IndexedDB unavailable */ }
+      finally { setIsLoading(false); }
     };
+    restore();
 
-    restoreLibrary();
-
-    return () => {
-      audio.pause();
-      audioRef.current = null;
-    };
+    return () => { audio.pause(); audioRef.current = null; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Audio events — attached once, read state via refs ────────────────────
+  // ─── Audio events (attached once, read state via refs) ────────────────────
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -212,13 +184,18 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const onTimeUpdate = () => setProgress(audio.currentTime);
     const onLoadedMetadata = () => setDuration(audio.duration);
     const onEnded = () => {
+      // Repeat mode: restart current track
+      if (repeatRef.current && audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+        incrementPlays();
+        return;
+      }
       const t = tracksRef.current;
       const ci = currentIndexRef.current;
       const sh = shuffleRef.current;
       if (!t.length) return;
-      const nextIdx = sh
-        ? Math.floor(Math.random() * t.length)
-        : ci + 1 >= t.length ? 0 : ci + 1;
+      const nextIdx = sh ? Math.floor(Math.random() * t.length) : ci + 1 >= t.length ? 0 : ci + 1;
       if (audioRef.current && nextIdx >= 0) {
         audioRef.current.src = t[nextIdx].url;
         audioRef.current.play().catch(() => {});
@@ -232,7 +209,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("ended", onEnded);
-
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
@@ -244,8 +220,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const pushRecent = (track: Track) => {
     setRecents((prev) => {
-      const entry: RecentEntry = { trackId: track.id, name: track.name, timestamp: Date.now() };
-      const next = [entry, ...prev.filter((r) => r.trackId !== track.id)].slice(0, 30);
+      const next = [
+        { trackId: track.id, name: track.name, timestamp: Date.now() },
+        ...prev.filter((r) => r.trackId !== track.id),
+      ].slice(0, 30);
       lsSet("vibra_recents", next);
       return next;
     });
@@ -264,34 +242,24 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const loadTracks = async (files: File[]) => {
     const valid = files.filter(
       (f) =>
-        ["audio/mpeg", "audio/wav", "audiogg", "audio/mp3", "audio/x-wav", "audio/ogg"].includes(f.type) ||
+        ["audio/mpeg", "audio/wav", "audio/ogg", "audio/mp3", "audio/x-wav", "audio/flac", "audio/aac"].includes(f.type) ||
         /\.(mp3|wav|ogg|m4a|flac|aac)$/i.test(f.name)
     );
     if (!valid.length) return;
 
-    // Process each file: read ID3 title + duration, save blob to IndexedDB
     const meta = ls<TrackMeta[]>("vibra_track_meta", []);
-
     const newTracks = await Promise.all(
       valid.map(async (f) => {
         const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
         const url = URL.createObjectURL(f);
-
-        // Try ID3 tag first, then clean filename
         const id3Title = await readID3Title(f);
         const name = id3Title ?? fileNameToTitle(f.name);
-
-        // Load metadata only (no full download)
         const dur = await getAudioDuration(url);
-
-        // Persist to IndexedDB
         await saveAudio(id, f);
         meta.push({ id, name, duration: dur });
-
         return { id, name, url, duration: dur } satisfies Track;
       })
     );
-
     lsSet("vibra_track_meta", meta);
 
     setTracks((prev) => {
@@ -304,48 +272,36 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const play = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (!audio.src && tracks.length > 0) {
-      playTrack(currentTrackIndex >= 0 ? currentTrackIndex : 0);
-    } else if (audio.src) {
-      audio.play().then(() => setIsPlaying(true)).catch(() => {});
-    }
+    if (!audio.src && tracks.length > 0) playTrack(currentTrackIndex >= 0 ? currentTrackIndex : 0);
+    else if (audio.src) audio.play().then(() => setIsPlaying(true)).catch(() => {});
   };
 
-  const pause = () => {
-    audioRef.current?.pause();
-    setIsPlaying(false);
-  };
+  const pause = () => { audioRef.current?.pause(); setIsPlaying(false); };
 
   const playTrack = (index: number) => {
     const t = tracksRef.current;
     const audio = audioRef.current;
     if (!audio || index < 0 || index >= t.length) return;
     audio.src = t[index].url;
-    audio.play()
-      .then(() => {
-        setCurrentTrackIndex(index);
-        setIsPlaying(true);
-        pushRecent(t[index]);
-        incrementPlays();
-      })
-      .catch(() => {});
+    audio.play().then(() => {
+      setCurrentTrackIndex(index);
+      setIsPlaying(true);
+      pushRecent(t[index]);
+      incrementPlays();
+    }).catch(() => {});
   };
 
   const next = () => {
     const t = tracksRef.current;
     if (!t.length) return;
     const ci = currentIndexRef.current;
-    const sh = shuffleRef.current;
-    playTrack(sh ? Math.floor(Math.random() * t.length) : ci + 1 >= t.length ? 0 : ci + 1);
+    playTrack(shuffleRef.current ? Math.floor(Math.random() * t.length) : ci + 1 >= t.length ? 0 : ci + 1);
   };
 
   const prev = () => {
     const t = tracksRef.current;
     if (!t.length) return;
-    if (audioRef.current && audioRef.current.currentTime > 3) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
+    if (audioRef.current && audioRef.current.currentTime > 3) { audioRef.current.currentTime = 0; return; }
     const ci = currentIndexRef.current;
     playTrack(ci <= 0 ? t.length - 1 : ci - 1);
   };
@@ -354,8 +310,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setCurrentMood(mood);
     localStorage.setItem("vibra_last_mood", mood);
     setHistory((prev) => {
-      const entry: MoodEntry = { mood, timestamp: Date.now() };
-      const next = [entry, ...prev].slice(0, 100);
+      const next = [{ mood, timestamp: Date.now() }, ...prev].slice(0, 100);
       lsSet("vibra_mood_history", next);
       setStats((s) => ({ ...s, topMood: calcTopMood(next) }));
       return next;
@@ -369,12 +324,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleShuffle = () => setShuffle((s) => !s);
+  const toggleRepeat = () => setRepeat((r) => !r);
 
   const seek = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setProgress(time);
-    }
+    if (audioRef.current) { audioRef.current.currentTime = time; setProgress(time); }
   };
 
   const toggleFavorite = (trackId: string) => {
@@ -397,7 +350,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       });
       return next;
     });
-
     await deleteAudio(trackId);
     lsSet("vibra_track_meta", ls<TrackMeta[]>("vibra_track_meta", []).filter((m) => m.id !== trackId));
     setFavorites((prev) => { const n = prev.filter((id) => id !== trackId); lsSet("vibra_favorites", n); return n; });
@@ -406,8 +358,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPlaylist = (name: string) => {
-    const pl: Playlist = { id: `pl_${Date.now()}`, name: name.trim(), trackIds: [] };
-    setPlaylists((prev) => { const n = [...prev, pl]; lsSet("vibra_playlists", n); return n; });
+    setPlaylists((prev) => { const n = [...prev, { id: `pl_${Date.now()}`, name: name.trim(), trackIds: [] }]; lsSet("vibra_playlists", n); return n; });
   };
 
   const deletePlaylist = (id: string) => {
@@ -417,9 +368,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const addToPlaylist = (playlistId: string, trackId: string) => {
     setPlaylists((prev) => {
       const n = prev.map((p) =>
-        p.id === playlistId && !p.trackIds.includes(trackId)
-          ? { ...p, trackIds: [...p.trackIds, trackId] }
-          : p
+        p.id === playlistId && !p.trackIds.includes(trackId) ? { ...p, trackIds: [...p.trackIds, trackId] } : p
       );
       lsSet("vibra_playlists", n);
       return n;
@@ -437,19 +386,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <PlayerContext.Provider
-      value={{
-        tracks, currentTrackIndex, isPlaying, shuffle, volume, currentMood,
-        progress, duration, isLoading, favorites, recents, playlists, history, stats,
-        currentTrack: currentTrackIndex >= 0 && currentTrackIndex < tracks.length
-          ? tracks[currentTrackIndex]
-          : null,
-        loadTracks, play, pause, playTrack, next, prev,
-        setMood, setVolume, toggleShuffle, seek,
-        toggleFavorite, removeTrack,
-        addPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
-      }}
-    >
+    <PlayerContext.Provider value={{
+      tracks, currentTrackIndex, isPlaying, shuffle, repeat, volume, currentMood,
+      progress, duration, isLoading, favorites, recents, playlists, history, stats,
+      currentTrack: currentTrackIndex >= 0 && currentTrackIndex < tracks.length ? tracks[currentTrackIndex] : null,
+      loadTracks, play, pause, playTrack, next, prev,
+      setMood, setVolume, toggleShuffle, toggleRepeat, seek,
+      toggleFavorite, removeTrack,
+      addPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
+    }}>
       {children}
     </PlayerContext.Provider>
   );

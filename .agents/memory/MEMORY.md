@@ -1,0 +1,1 @@
+- [VIBRA app](vibra-app.md) — React+Vite music PWA in artifacts/vibra; key architecture and completed features.
