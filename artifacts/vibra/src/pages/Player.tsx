@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ─── Mood data ────────────────────────────────────────────────────────────────
+// ─── Mood definitions ────────────────────────────────────────────────────────
 
 const MOODS = [
   { id: "feliz", label: "Feliz", emoji: "😊", color: "from-yellow-500/20 to-amber-500/10", border: "border-yellow-500/40", text: "text-yellow-300",
@@ -39,14 +39,23 @@ const MOODS = [
     rec: "Electrónica, reggaeton o pop urbano que no deje a nadie quieto." },
 ];
 
-function fmt(secs: number) {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmt(secs: number): string {
+  if (!secs || !isFinite(secs) || isNaN(secs)) return "";
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function fmtFull(secs: number): string {
   if (!isFinite(secs) || isNaN(secs)) return "0:00";
   const m = Math.floor(secs / 60);
   const s = Math.floor(secs % 60);
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function timeAgo(ts: number) {
+function timeAgo(ts: number): string {
   const d = Date.now() - ts;
   const m = Math.floor(d / 60000);
   if (m < 1) return "ahora";
@@ -56,9 +65,7 @@ function timeAgo(ts: number) {
   return `hace ${Math.floor(h / 24)}d`;
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-type LibraryView = "todos" | "recientes" | "favoritos" | "listas";
+// ─── Track row sub-component ─────────────────────────────────────────────────
 
 interface TrackRowProps {
   name: string;
@@ -67,23 +74,30 @@ interface TrackRowProps {
   isActive: boolean;
   isPlaying: boolean;
   isFavorite: boolean;
+  duration?: number;
+  badge?: string;           // Right-side text badge (e.g. "hace 2m")
+  playlistCount?: number;   // How many playlists this track is in
   onPlay: () => void;
   onFavorite: (e: React.MouseEvent) => void;
   onRemove?: (e: React.MouseEvent) => void;
-  badge?: string;
 }
 
-function TrackRow({ name, index, isActive, isPlaying, isFavorite, onPlay, onFavorite, onRemove, badge }: TrackRowProps) {
+function TrackRow({
+  name, index, isActive, isPlaying, isFavorite,
+  duration, badge, playlistCount = 0,
+  onPlay, onFavorite, onRemove,
+}: TrackRowProps) {
   return (
     <div
       onClick={onPlay}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all group",
+        "flex items-center gap-2.5 p-3 rounded-xl cursor-pointer transition-all group",
         isActive
           ? "bg-primary/15 border border-primary/40"
           : "bg-card border border-transparent hover:border-border"
       )}
     >
+      {/* Index / equalizer indicator */}
       <div className={cn(
         "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-medium",
         isActive ? "bg-primary text-white" : "bg-muted text-muted-foreground"
@@ -94,28 +108,48 @@ function TrackRow({ name, index, isActive, isPlaying, isFavorite, onPlay, onFavo
         }
       </div>
 
-      <span className={cn("text-sm truncate flex-1", isActive ? "text-primary font-medium" : "text-foreground")}>
-        {name}
-      </span>
+      {/* Track name */}
+      <div className="flex-1 min-w-0">
+        <p className={cn("text-sm truncate", isActive ? "text-primary font-medium" : "text-foreground")}>
+          {name}
+        </p>
+        {/* Duration + playlist indicator row */}
+        <div className="flex items-center gap-2 mt-0.5">
+          {duration ? (
+            <span className="text-[11px] text-muted-foreground/70">{fmt(duration)}</span>
+          ) : null}
+          {playlistCount > 0 && (
+            <span className="flex items-center gap-0.5 text-[11px] text-muted-foreground/60">
+              <ListMusic size={10} />
+              {playlistCount}
+            </span>
+          )}
+        </div>
+      </div>
 
+      {/* Timestamp badge (recents) */}
       {badge && (
-        <span className="text-[10px] text-muted-foreground">{badge}</span>
+        <span className="text-[10px] text-muted-foreground/60 shrink-0">{badge}</span>
       )}
 
+      {/* Favorite toggle */}
       <button
         onClick={onFavorite}
         className={cn(
           "p-1.5 rounded-full transition-colors shrink-0",
-          isFavorite ? "text-pink-400" : "text-muted-foreground/40 hover:text-pink-400 opacity-0 group-hover:opacity-100"
+          isFavorite
+            ? "text-pink-400"
+            : "text-muted-foreground/30 hover:text-pink-400 opacity-0 group-hover:opacity-100"
         )}
       >
         <Heart size={14} fill={isFavorite ? "currentColor" : "none"} />
       </button>
 
+      {/* Remove button */}
       {onRemove && (
         <button
           onClick={onRemove}
-          className="p-1.5 rounded-full text-muted-foreground/40 hover:text-destructive transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+          className="p-1.5 rounded-full text-muted-foreground/30 hover:text-destructive transition-colors shrink-0 opacity-0 group-hover:opacity-100"
         >
           <Trash2 size={14} />
         </button>
@@ -124,7 +158,9 @@ function TrackRow({ name, index, isActive, isPlaying, isFavorite, onPlay, onFavo
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main Player page ─────────────────────────────────────────────────────────
+
+type LibraryView = "todos" | "recientes" | "favoritos" | "listas";
 
 export function Player() {
   const {
@@ -133,8 +169,8 @@ export function Player() {
     favorites, recents, playlists,
     loadTracks, play, pause, playTrack, next, prev,
     setMood, setVolume, toggleShuffle, seek, currentMood,
-    toggleFavorite, removeTrack, addPlaylist, deletePlaylist,
-    addToPlaylist, removeFromPlaylist,
+    toggleFavorite, removeTrack,
+    addPlaylist, deletePlaylist, addToPlaylist, removeFromPlaylist,
   } = usePlayer();
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -149,14 +185,10 @@ export function Player() {
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0;
 
   const handleFiles = useCallback((files: FileList | null) => {
-    if (!files) return;
-    loadTracks(Array.from(files));
+    if (files) loadTracks(Array.from(files));
   }, [loadTracks]);
 
-  const handleSelectMood = (id: string) => {
-    setSelectedMood(id);
-    setMood(id);
-  };
+  const handleSelectMood = (id: string) => { setSelectedMood(id); setMood(id); };
 
   const handleCreatePlaylist = () => {
     if (!newPlaylistName.trim()) return;
@@ -165,17 +197,21 @@ export function Player() {
     setShowNewPlaylist(false);
   };
 
-  // Derive lists for each view
-  const favoriteTracks = tracks.filter((t) => favorites.includes(t.id));
-  const recentTracks = recents
+  // Derived lists
+  const favTracks = tracks.filter((t) => favorites.includes(t.id));
+  const recentItems = recents
     .map((r) => ({ ...r, track: tracks.find((t) => t.id === r.trackId) }))
-    .filter((r) => r.track) as { trackId: string; name: string; timestamp: number; track: typeof tracks[0] }[];
+    .filter((r) => r.track) as { trackId: string; name: string; timestamp: number; track: (typeof tracks)[0] }[];
   const selectedPlaylist = playlists.find((p) => p.id === selectedPlaylistId);
   const playlistTracks = selectedPlaylist
-    ? selectedPlaylist.trackIds.map((id) => tracks.find((t) => t.id === id)).filter(Boolean) as typeof tracks
+    ? (selectedPlaylist.trackIds.map((id) => tracks.find((t) => t.id === id)).filter(Boolean) as typeof tracks)
     : [];
 
-  const trackIndex = (trackId: string) => tracks.findIndex((t) => t.id === trackId);
+  // How many playlists contain a given track
+  const playlistCountFor = (trackId: string) =>
+    playlists.filter((p) => p.trackIds.includes(trackId)).length;
+
+  const idxOf = (trackId: string) => tracks.findIndex((t) => t.id === trackId);
 
   return (
     <motion.div
@@ -188,13 +224,10 @@ export function Player() {
         VIBRA
       </h1>
 
-      {/* Top tabs */}
+      {/* Main tabs */}
       <div className="flex rounded-full overflow-hidden border border-border mb-6 bg-card/50">
         {(["music", "vibra"] as const).map((tab) => (
-          <button
-            key={tab}
-            data-testid={`tab-${tab}`}
-            onClick={() => setActiveTab(tab)}
+          <button key={tab} data-testid={`tab-${tab}`} onClick={() => setActiveTab(tab)}
             className={cn(
               "flex-1 py-2.5 text-sm font-medium transition-all",
               activeTab === tab ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
@@ -207,11 +240,11 @@ export function Player() {
 
       <AnimatePresence mode="wait">
 
-        {/* ── MUSIC TAB ──────────────────────────────────────────────────── */}
+        {/* ══════════ MÚSICA TAB ══════════ */}
         {activeTab === "music" && (
           <motion.div key="music" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.2 }}>
 
-            {/* Now Playing */}
+            {/* Now Playing card */}
             {currentTrack ? (
               <div className="mb-5 p-5 rounded-2xl bg-card border border-border glow-box">
                 <div className="flex items-center gap-3 mb-4">
@@ -220,64 +253,56 @@ export function Player() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{currentTrack.name}</p>
-                    <div className="flex items-end gap-1 h-5 mt-1">
+                    <div className="flex items-center gap-2 mt-0.5">
                       <Equalizer isPlaying={isPlaying} bars={5} className="h-4" barClassName="w-1.5 bg-primary" />
+                      {currentTrack.duration > 0 && (
+                        <span className="text-xs text-muted-foreground/60">{fmt(currentTrack.duration)}</span>
+                      )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => toggleFavorite(currentTrack.id)}
-                    className={cn("p-2 rounded-full transition-colors", favorites.includes(currentTrack.id) ? "text-pink-400" : "text-muted-foreground hover:text-pink-400")}
-                  >
+                  <button onClick={() => toggleFavorite(currentTrack.id)}
+                    className={cn("p-2 rounded-full transition-colors", favorites.includes(currentTrack.id) ? "text-pink-400" : "text-muted-foreground hover:text-pink-400")}>
                     <Heart size={18} fill={favorites.includes(currentTrack.id) ? "currentColor" : "none"} />
                   </button>
                 </div>
 
-                {/* Progress bar */}
+                {/* Progress */}
                 <div className="mb-3">
-                  <input
-                    data-testid="slider-progress"
-                    type="range" min={0} max={duration || 1} value={progress}
+                  <input data-testid="slider-progress" type="range" min={0} max={duration || 1} value={progress}
                     onChange={(e) => seek(Number(e.target.value))}
                     className="w-full h-1.5 accent-primary cursor-pointer rounded-full"
                     style={{ background: `linear-gradient(to right, hsl(var(--primary)) ${progressPct}%, hsl(var(--border)) ${progressPct}%)` }}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                    <span>{fmt(progress)}</span>
-                    <span>{fmt(duration)}</span>
+                    <span>{fmtFull(progress)}</span>
+                    <span>{fmtFull(duration)}</span>
                   </div>
                 </div>
 
-                {/* Playback controls */}
+                {/* Controls */}
                 <div className="flex items-center justify-between">
                   <button data-testid="button-shuffle" onClick={toggleShuffle}
                     className={cn("p-2 rounded-full transition-colors", shuffle ? "text-primary bg-primary/20" : "text-muted-foreground hover:text-foreground")}>
                     <Shuffle size={18} />
                   </button>
-                  <button data-testid="button-prev" onClick={prev} className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                  <button data-testid="button-prev" onClick={prev}
+                    className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-colors">
                     <SkipBack size={22} />
                   </button>
-                  <button
-                    data-testid="button-play-pause"
-                    onClick={isPlaying ? pause : play}
+                  <button data-testid="button-play-pause" onClick={isPlaying ? pause : play}
                     className="w-14 h-14 rounded-full flex items-center justify-center transition-all"
-                    style={{
-                      background: "linear-gradient(135deg, hsl(270,80%,55%), hsl(200,100%,50%))",
-                      boxShadow: "0 0 20px hsla(270,80%,65%,0.4)",
-                    }}
-                  >
+                    style={{ background: "linear-gradient(135deg, hsl(270,80%,55%), hsl(200,100%,50%))", boxShadow: "0 0 20px hsla(270,80%,65%,0.4)" }}>
                     {isPlaying ? <Pause size={24} fill="white" className="text-white" /> : <Play size={24} fill="white" className="text-white ml-1" />}
                   </button>
-                  <button data-testid="button-next" onClick={next} className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-colors">
+                  <button data-testid="button-next" onClick={next}
+                    className="p-3 rounded-full text-muted-foreground hover:text-foreground transition-colors">
                     <SkipForward size={22} />
                   </button>
                   <div className="flex items-center gap-1">
                     <Volume2 size={16} className="text-muted-foreground" />
-                    <input
-                      data-testid="slider-volume"
-                      type="range" min={0} max={1} step={0.05} value={volume}
+                    <input data-testid="slider-volume" type="range" min={0} max={1} step={0.05} value={volume}
                       onChange={(e) => setVolume(Number(e.target.value))}
-                      className="w-16 h-1 accent-primary cursor-pointer"
-                    />
+                      className="w-16 h-1 accent-primary cursor-pointer" />
                   </div>
                 </div>
               </div>
@@ -295,37 +320,35 @@ export function Player() {
             )}
 
             {/* Library sub-navigation */}
-            <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-hide">
-              {(["todos", "recientes", "favoritos", "listas"] as LibraryView[]).map((v) => {
-                const icons = { todos: Music2, recientes: Clock, favoritos: Heart, listas: ListMusic };
-                const labels = { todos: "Todos", recientes: "Recientes", favoritos: "Favoritos", listas: "Listas" };
-                const Icon = icons[v];
-                return (
-                  <button
-                    key={v}
-                    data-testid={`filter-${v}`}
-                    onClick={() => { setLibraryView(v); setSelectedPlaylistId(null); }}
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0",
-                      libraryView === v
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-border text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Icon size={12} />
-                    {labels[v]}
-                  </button>
-                );
-              })}
+            <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+              {([
+                { id: "todos", Icon: Music2, label: "Todos" },
+                { id: "recientes", Icon: Clock, label: "Recientes" },
+                { id: "favoritos", Icon: Heart, label: "Favoritos" },
+                { id: "listas", Icon: ListMusic, label: "Listas" },
+              ] as const).map(({ id, Icon, label }) => (
+                <button key={id} data-testid={`filter-${id}`}
+                  onClick={() => { setLibraryView(id); setSelectedPlaylistId(null); }}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all shrink-0",
+                    libraryView === id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon size={12} />
+                  {label}
+                </button>
+              ))}
             </div>
 
             <AnimatePresence mode="wait">
 
-              {/* TODOS view */}
+              {/* ── Todos ── */}
               {libraryView === "todos" && (
                 <motion.div key="todos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <div
-                    data-testid="zone-upload"
+                  {/* Upload zone */}
+                  <div data-testid="zone-upload"
                     onClick={() => fileRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
@@ -334,28 +357,30 @@ export function Player() {
                     <Upload size={22} className="mx-auto text-primary mb-2" />
                     <p className="text-sm font-medium text-primary">Subir música</p>
                     <p className="text-xs text-muted-foreground mt-0.5">MP3, WAV, OGG — arrastra o haz click</p>
-                    <input ref={fileRef} type="file" accept=".mp3,.wav,.ogg,audio/mpeg,audio/wav,audio/ogg"
+                    <input ref={fileRef} type="file" accept=".mp3,.wav,.ogg,.m4a,.flac,.aac,audio/*"
                       multiple className="hidden" data-testid="input-file-upload"
                       onChange={(e) => handleFiles(e.target.files)} />
                   </div>
 
                   {tracks.length > 0 ? (
-                    <div>
+                    <>
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-                        Biblioteca ({tracks.length})
+                        Biblioteca · {tracks.length} canciones
                       </p>
                       <div className="space-y-1.5">
                         {tracks.map((t, i) => (
                           <TrackRow key={t.id} name={t.name} index={i} trackId={t.id}
                             isActive={currentTrackIndex === i} isPlaying={isPlaying}
                             isFavorite={favorites.includes(t.id)}
+                            duration={t.duration}
+                            playlistCount={playlistCountFor(t.id)}
                             onPlay={() => playTrack(i)}
                             onFavorite={(e) => { e.stopPropagation(); toggleFavorite(t.id); }}
                             onRemove={(e) => { e.stopPropagation(); removeTrack(t.id); }}
                           />
                         ))}
                       </div>
-                    </div>
+                    </>
                   ) : !isLoading && (
                     <p className="text-center text-sm text-muted-foreground py-4">
                       No hay canciones en la biblioteca
@@ -364,18 +389,19 @@ export function Player() {
                 </motion.div>
               )}
 
-              {/* RECIENTES view */}
+              {/* ── Recientes ── */}
               {libraryView === "recientes" && (
                 <motion.div key="recientes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                  {recentTracks.length > 0 ? (
+                  {recentItems.length > 0 ? (
                     <div className="space-y-1.5">
-                      {recentTracks.map((r, i) => (
+                      {recentItems.map((r, i) => (
                         <TrackRow key={`${r.trackId}-${i}`} name={r.name} index={i} trackId={r.trackId}
                           isActive={currentTrack?.id === r.trackId} isPlaying={isPlaying}
                           isFavorite={favorites.includes(r.trackId)}
-                          onPlay={() => playTrack(trackIndex(r.trackId))}
-                          onFavorite={(e) => { e.stopPropagation(); toggleFavorite(r.trackId); }}
+                          duration={r.track.duration}
                           badge={timeAgo(r.timestamp)}
+                          onPlay={() => playTrack(idxOf(r.trackId))}
+                          onFavorite={(e) => { e.stopPropagation(); toggleFavorite(r.trackId); }}
                         />
                       ))}
                     </div>
@@ -389,16 +415,18 @@ export function Player() {
                 </motion.div>
               )}
 
-              {/* FAVORITOS view */}
+              {/* ── Favoritos ── */}
               {libraryView === "favoritos" && (
                 <motion.div key="favoritos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                  {favoriteTracks.length > 0 ? (
+                  {favTracks.length > 0 ? (
                     <div className="space-y-1.5">
-                      {favoriteTracks.map((t, i) => (
+                      {favTracks.map((t, i) => (
                         <TrackRow key={t.id} name={t.name} index={i} trackId={t.id}
                           isActive={currentTrack?.id === t.id} isPlaying={isPlaying}
                           isFavorite
-                          onPlay={() => playTrack(trackIndex(t.id))}
+                          duration={t.duration}
+                          playlistCount={playlistCountFor(t.id)}
+                          onPlay={() => playTrack(idxOf(t.id))}
                           onFavorite={(e) => { e.stopPropagation(); toggleFavorite(t.id); }}
                         />
                       ))}
@@ -413,61 +441,71 @@ export function Player() {
                 </motion.div>
               )}
 
-              {/* LISTAS view */}
+              {/* ── Listas ── */}
               {libraryView === "listas" && (
                 <motion.div key="listas" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
 
-                  {/* Playlist detail */}
                   {selectedPlaylist ? (
+                    /* Playlist detail */
                     <div>
                       <button onClick={() => setSelectedPlaylistId(null)}
                         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
                         <ChevronLeft size={16} /> Volver a listas
                       </button>
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="font-semibold">{selectedPlaylist.name}</h3>
-                          <p className="text-xs text-muted-foreground">{selectedPlaylist.trackIds.length} canciones</p>
+                          <p className="text-xs text-muted-foreground">
+                            {selectedPlaylist.trackIds.length} canciones
+                          </p>
                         </div>
                         <button onClick={() => { deletePlaylist(selectedPlaylist.id); setSelectedPlaylistId(null); }}
                           className="p-2 rounded-full text-muted-foreground hover:text-destructive transition-colors">
                           <Trash2 size={16} />
                         </button>
                       </div>
+
                       {playlistTracks.length > 0 ? (
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5 mb-4">
                           {playlistTracks.map((t, i) => (
                             <TrackRow key={t.id} name={t.name} index={i} trackId={t.id}
                               isActive={currentTrack?.id === t.id} isPlaying={isPlaying}
                               isFavorite={favorites.includes(t.id)}
-                              onPlay={() => playTrack(trackIndex(t.id))}
+                              duration={t.duration}
+                              onPlay={() => playTrack(idxOf(t.id))}
                               onFavorite={(e) => { e.stopPropagation(); toggleFavorite(t.id); }}
                               onRemove={(e) => { e.stopPropagation(); removeFromPlaylist(selectedPlaylist.id, t.id); }}
                             />
                           ))}
                         </div>
                       ) : (
-                        <p className="text-center text-sm text-muted-foreground py-6">
-                          Esta lista está vacía — añade canciones desde "Todos"
+                        <p className="text-center text-sm text-muted-foreground py-4">
+                          Lista vacía — añade canciones desde abajo
                         </p>
                       )}
 
-                      {/* Add tracks to playlist */}
+                      {/* Add tracks to this playlist */}
                       {tracks.filter((t) => !selectedPlaylist.trackIds.includes(t.id)).length > 0 && (
-                        <div className="mt-4">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Añadir a esta lista</p>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                            Añadir a esta lista
+                          </p>
                           <div className="space-y-1.5">
-                            {tracks.filter((t) => !selectedPlaylist.trackIds.includes(t.id)).map((t, i) => (
-                              <div key={t.id}
-                                onClick={() => addToPlaylist(selectedPlaylist.id, t.id)}
-                                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer bg-card border border-transparent hover:border-border transition-all">
-                                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground shrink-0">
-                                  {i + 1}
+                            {tracks
+                              .filter((t) => !selectedPlaylist.trackIds.includes(t.id))
+                              .map((t, i) => (
+                                <div key={t.id} onClick={() => addToPlaylist(selectedPlaylist.id, t.id)}
+                                  className="flex items-center gap-3 p-3 rounded-xl cursor-pointer bg-card border border-transparent hover:border-border transition-all">
+                                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground shrink-0">
+                                    {i + 1}
+                                  </div>
+                                  <span className="text-sm truncate flex-1">{t.name}</span>
+                                  {t.duration > 0 && (
+                                    <span className="text-xs text-muted-foreground/60 shrink-0">{fmt(t.duration)}</span>
+                                  )}
+                                  <Plus size={14} className="text-primary shrink-0" />
                                 </div>
-                                <span className="text-sm truncate flex-1">{t.name}</span>
-                                <Plus size={14} className="text-primary shrink-0" />
-                              </div>
-                            ))}
+                              ))}
                           </div>
                         </div>
                       )}
@@ -475,12 +513,9 @@ export function Player() {
                   ) : (
                     /* Playlist list */
                     <div>
-                      {/* New playlist */}
                       {showNewPlaylist ? (
                         <div className="flex gap-2 mb-4">
-                          <input
-                            autoFocus
-                            value={newPlaylistName}
+                          <input autoFocus value={newPlaylistName}
                             onChange={(e) => setNewPlaylistName(e.target.value)}
                             onKeyDown={(e) => { if (e.key === "Enter") handleCreatePlaylist(); if (e.key === "Escape") setShowNewPlaylist(false); }}
                             placeholder="Nombre de la lista..."
@@ -496,20 +531,16 @@ export function Player() {
                           </button>
                         </div>
                       ) : (
-                        <button
-                          data-testid="button-new-playlist"
-                          onClick={() => setShowNewPlaylist(true)}
+                        <button data-testid="button-new-playlist" onClick={() => setShowNewPlaylist(true)}
                           className="flex items-center gap-2 w-full p-3 rounded-xl border border-dashed border-primary/40 text-primary text-sm font-medium hover:bg-primary/5 transition-all mb-4">
-                          <Plus size={16} /> Nueva lista
+                          <Plus size={16} /> Nueva lista de reproducción
                         </button>
                       )}
 
                       {playlists.length > 0 ? (
                         <div className="space-y-2">
                           {playlists.map((pl) => (
-                            <motion.div
-                              key={pl.id}
-                              data-testid={`card-playlist-${pl.id}`}
+                            <motion.div key={pl.id} data-testid={`card-playlist-${pl.id}`}
                               onClick={() => setSelectedPlaylistId(pl.id)}
                               className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border cursor-pointer hover:border-primary/40 transition-all"
                               whileHover={{ scale: 1.01 }}
@@ -539,7 +570,7 @@ export function Player() {
           </motion.div>
         )}
 
-        {/* ── VIBRA TAB ──────────────────────────────────────────────────── */}
+        {/* ══════════ VIBRA TAB ══════════ */}
         {activeTab === "vibra" && (
           <motion.div key="vibra" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
             <p className="text-sm text-muted-foreground text-center mb-4">¿Cómo te sientes ahora?</p>
