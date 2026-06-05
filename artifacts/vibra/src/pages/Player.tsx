@@ -219,26 +219,62 @@ export function Player() {
 
             {/* Now Playing card */}
             {currentTrack ? (
-              <div className="mb-5 p-5 rounded-2xl glass-card glow-box">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 relative overflow-hidden">
-                    <Music2 size={22} className="text-primary" />
-                    {isPlaying && <div className="absolute inset-0 rounded-xl bg-primary/10 animate-ping" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{currentTrack.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <Equalizer isPlaying={isPlaying} bars={5} className="h-3" barClassName="w-1 bg-primary" />
-                      {currentTrack.duration > 0 && (
-                        <span className="text-xs text-muted-foreground/60">{fmt(currentTrack.duration)}</span>
-                      )}
+              <div className="mb-5 rounded-2xl glass-card glow-box overflow-hidden">
+                {/* Ambient top bar */}
+                <div className="h-1 w-full" style={{
+                  background: "linear-gradient(90deg, hsl(270,80%,60%), hsl(195,100%,55%), hsl(300,90%,60%))",
+                  backgroundSize: "200% 100%",
+                  animation: isPlaying ? "shimmer 3s linear infinite" : undefined,
+                }} />
+
+                <div className="p-5">
+                  {/* Circular art + track info row */}
+                  <div className="flex items-center gap-4 mb-4">
+
+                    {/* Circular art */}
+                    <div className="relative shrink-0 w-16 h-16">
+                      {/* Pulsing outer rings (only when playing) */}
+                      {isPlaying && [0, 1].map((i) => (
+                        <div key={i} className="absolute rounded-full animate-ping pointer-events-none"
+                          style={{
+                            inset: `${-4 - i * 6}px`,
+                            border: `1px solid hsl(var(--primary) / ${0.3 - i * 0.12})`,
+                            animationDuration: `${1.4 + i * 0.8}s`,
+                            animationDelay: `${i * 0.35}s`,
+                          }} />
+                      ))}
+                      {/* Spinning conic-gradient ring */}
+                      <div
+                        className="absolute inset-0 rounded-full p-[2px]"
+                        style={{
+                          background: "conic-gradient(from 0deg, hsl(270,80%,60%), hsl(195,100%,55%), hsl(300,90%,60%), hsl(270,80%,60%))",
+                          animation: isPlaying ? "spin-slow 5s linear infinite" : undefined,
+                        }}
+                      >
+                        <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+                          <Music2 size={22} className="text-primary" />
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Track name + EQ */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate text-base">{currentTrack.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Equalizer isPlaying={isPlaying} bars={5} className="h-3" barClassName="w-1 bg-primary" />
+                        {currentTrack.duration > 0 && (
+                          <span className="text-xs text-muted-foreground/55">{fmt(currentTrack.duration)}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Favorite */}
+                    <button onClick={() => toggleFavorite(currentTrack.id)}
+                      className={cn("p-2 rounded-full transition-colors shrink-0",
+                        favorites.includes(currentTrack.id) ? "text-pink-400" : "text-muted-foreground hover:text-pink-400")}>
+                      <Heart size={18} fill={favorites.includes(currentTrack.id) ? "currentColor" : "none"} />
+                    </button>
                   </div>
-                  <button onClick={() => toggleFavorite(currentTrack.id)}
-                    className={cn("p-2 rounded-full transition-colors", favorites.includes(currentTrack.id) ? "text-pink-400" : "text-muted-foreground hover:text-pink-400")}>
-                    <Heart size={18} fill={favorites.includes(currentTrack.id) ? "currentColor" : "none"} />
-                  </button>
-                </div>
 
                 {/* Progress bar */}
                 <div className="mb-4">
@@ -302,6 +338,7 @@ export function Player() {
                       className="w-14 h-1 accent-primary cursor-pointer rounded-full" />
                   </div>
                 </div>
+                </div>{/* /p-5 */}
               </div>
             ) : isLoading ? (
               <div className="mb-5 p-6 rounded-2xl bg-card border border-border text-center">
