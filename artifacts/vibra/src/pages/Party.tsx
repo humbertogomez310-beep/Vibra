@@ -163,12 +163,19 @@ function Visualizer({
 
 export function Party() {
   const { isPlaying, currentTrack, play, pause, next, tracks, shuffle, toggleShuffle } = usePlayer();
-  const [partyActive, setPartyActive] = useState(false);
+  const [partyActive, setPartyActive] = useState(() =>
+    localStorage.getItem("vibra_party_active") === "true"
+  );
   const [energy, setEnergy] = useState("normal");
   const [colorIdx, setColorIdx] = useState(0);
   const colorRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const energyData = ENERGY_LEVELS.find((e) => e.id === energy)!;
+
+  // Persist party mode across sessions
+  useEffect(() => {
+    localStorage.setItem("vibra_party_active", String(partyActive));
+  }, [partyActive]);
 
   useEffect(() => {
     if (colorRef.current) clearInterval(colorRef.current);

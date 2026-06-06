@@ -192,9 +192,15 @@ export function Player() {
     >
       {/* HBG + VIBRA header */}
       <div className="text-center mb-6">
-        <div className="flex justify-center gap-3 mb-1">
+        <div className="flex justify-center items-center gap-1 mb-1">
           {["H", "B", "G"].map((l, i) => (
-            <span key={l} className="font-display text-[10px] font-black text-muted-foreground/40 tracking-widest">{l}</span>
+            <span key={l} className="contents">
+              <span
+                className="font-display text-[10px] font-black tracking-widest"
+                style={{ color: `hsl(${270 + i * 22}, 70%, 60%)`, opacity: 0.55 }}
+              >{l}</span>
+              {i < 2 && <span className="text-[9px] text-muted-foreground/25 mx-0.5">·</span>}
+            </span>
           ))}
         </div>
         <h1 className="font-display text-2xl font-bold tracking-wider glow-text">VIBRA</h1>

@@ -96,7 +96,8 @@ function calcTopMood(hist: MoodEntry[]): string | null {
 }
 
 function fileNameToTitle(name: string): string {
-  return name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").replace(/\s{2,}/g, " ").trim();
+  // Strip only the extension — preserve the filename exactly as the user named it.
+  return name.replace(/\.[^/.]+$/, "").trim();
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -127,6 +128,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const currentIndexRef = useRef(-1);
   const shuffleRef = useRef(false);
   const repeatRef = useRef(false);
+  const lastProgressSaveRef = useRef(0);
   tracksRef.current = tracks;
   currentIndexRef.current = currentTrackIndex;
   shuffleRef.current = shuffle;
@@ -161,12 +163,36 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (!stored.length) { setIsLoading(false); return; }
         const map: Record<string, TrackMeta> = {};
         meta.forEach((m) => { map[m.id] = m; });
-        setTracks(stored.map(({ id, blob }) => ({
+        const restoredTracks = stored.map(({ id, blob }) => ({
           id,
           name: map[id]?.name ?? "Canción sin título",
           url: URL.createObjectURL(blob),
           duration: map[id]?.duration ?? 0,
-        })));
+        }));
+        setTracks(restoredTracks);
+
+        // ── Restore last session (track + seek position) ──────────────────
+        const sessionTrackId = localStorage.getItem("vibra_session_track_id");
+        const sessionProgress = parseFloat(localStorage.getItem("vibra_session_progress") ?? "0");
+        if (sessionTrackId && audioRef.current) {
+          const idx = restoredTracks.findIndex((t) => t.id === sessionTrackId);
+          if (idx >= 0) {
+            setCurrentTrackIndex(idx);
+            audioRef.current.src = restoredTracks[idx].url;
+            if (sessionProgress > 1) {
+              // Seek once metadata is available
+              const onMeta = () => {
+                if (audioRef.current) {
+                  audioRef.current.currentTime = sessionProgress;
+                  setProgress(sessionProgress);
+                }
+                audioRef.current?.removeEventListener("loadedmetadata", onMeta);
+              };
+              audioRef.current.addEventListener("loadedmetadata", onMeta);
+              audioRef.current.load();
+            }
+          }
+        }
       } catch { /* IndexedDB unavailable */ }
       finally { setIsLoading(false); }
     };
@@ -181,7 +207,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const onTimeUpdate = () => setProgress(audio.currentTime);
+    const onTimeUpdate = () => {
+      setProgress(audio.currentTime);
+      // Throttle progress saves to every 5 s to avoid hammering localStorage
+      const now = Date.now();
+      if (now - lastProgressSaveRef.current > 5000) {
+        lastProgressSaveRef.current = now;
+        localStorage.setItem("vibra_session_progress", String(Math.floor(audio.currentTime)));
+      }
+    };
     const onLoadedMetadata = () => setDuration(audio.duration);
     const onEnded = () => {
       // Repeat mode: restart current track
@@ -294,6 +328,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setIsPlaying(true);
       pushRecent(t[index]);
       incrementPlays();
+      // Save session so the app resumes here on next open
+      localStorage.setItem("vibra_session_track_id", t[index].id);
+      localStorage.setItem("vibra_session_progress", "0");
     }).catch(() => {});
   };
 

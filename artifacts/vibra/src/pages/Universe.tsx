@@ -9,11 +9,12 @@ const HBG_APPS = [
     name: "INSTINTO",
     tagline: "Navegación emocional en tiempo real",
     desc: "Tu brújula interior hecha app. INSTINTO lee tu energía, detecta tu estado y te guía hacia las decisiones más auténticas. Inteligencia emocional del siglo XXI.",
-    status: "soon",
+    status: "available",
+    url: "https://instinto.replit.app",
     gradient: "from-orange-950/60 via-amber-950/40 to-red-950/30",
-    border: "hsla(25, 90%, 45%, 0.3)",
-    glow: "hsla(25, 90%, 50%, 0.15)",
-    accent: "hsl(25, 90%, 60%)",
+    border: "hsla(25, 90%, 55%, 0.4)",
+    glow: "hsla(25, 90%, 50%, 0.2)",
+    accent: "hsl(25, 90%, 65%)",
     Icon: Flame,
     iconColor: "#f97316",
   },
@@ -120,12 +121,13 @@ export function Universe() {
               <motion.div
                 key={app.id}
                 data-testid={`card-app-${app.id}`}
-                className={cn("relative rounded-2xl overflow-hidden bg-gradient-to-br cursor-default", app.gradient)}
+                className={cn("relative rounded-2xl overflow-hidden bg-gradient-to-br", app.status === "available" ? "cursor-pointer" : "cursor-default", app.gradient)}
                 style={{ border: `1px solid ${app.border}`, boxShadow: `0 0 30px ${app.glow}, inset 0 1px 0 hsla(255,100%,100%,0.05)` }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.12, type: "spring", damping: 20 }}
                 whileHover={{ scale: 1.015, y: -2 }}
+                onClick={() => { if (app.status === "available" && "url" in app && app.url) window.open(app.url as string, "_blank", "noopener"); }}
               >
                 {/* Ambient orb */}
                 <div
@@ -161,6 +163,14 @@ export function Universe() {
                       <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 text-muted-foreground border border-white/10 shrink-0">
                         <Lock size={8} /> Pronto
                       </span>
+                    ) : app.status === "available" ? (
+                      <span
+                        className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0"
+                        style={{ background: `${app.glow}`, color: app.accent, border: `1px solid ${app.border}` }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: app.accent }} />
+                        Disponible
+                      </span>
                     ) : (
                       <span
                         className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0"
@@ -174,11 +184,11 @@ export function Universe() {
                   {/* Description */}
                   <p className="text-xs text-muted-foreground/75 leading-relaxed mb-4">{app.desc}</p>
 
-                  {/* Hover arrow hint */}
+                  {/* Action hint */}
                   <div className="flex items-center gap-1.5" style={{ color: app.accent }}>
                     <Icon size={12} />
                     <span className="text-[10px] font-semibold uppercase tracking-widest">
-                      {app.status === "beta" ? "Disponible en Beta" : "Próximamente"}
+                      {app.status === "available" ? "Disponible — Abrir App" : app.status === "beta" ? "Disponible en Beta" : "Próximamente"}
                     </span>
                     <ArrowRight size={10} />
                   </div>
