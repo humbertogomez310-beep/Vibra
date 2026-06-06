@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useRef, useEffect } from "react";
 import { saveAudio, getAllAudio, deleteAudio } from "@/lib/db";
-import { readID3Title, getAudioDuration } from "@/lib/id3";
+import { getAudioDuration } from "@/lib/id3";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -248,18 +248,24 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     if (!valid.length) return;
 
     const meta = ls<TrackMeta[]>("vibra_track_meta", []);
-    const newTracks = await Promise.all(
-      valid.map(async (f) => {
-        const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        const url = URL.createObjectURL(f);
-        const id3Title = await readID3Title(f);
-        const name = id3Title ?? fileNameToTitle(f.name);
-        const dur = await getAudioDuration(url);
-        await saveAudio(id, f);
-        meta.push({ id, name, duration: dur });
-        return { id, name, url, duration: dur } satisfies Track;
-      })
-    );
+    const newTracks: Track[] = [];
+
+    // Process files sequentially to avoid concurrent IndexedDB write failures
+    // that silently drop tracks when many files are loaded at once.
+    for (let i = 0; i < valid.length; i++) {
+      const f = valid[i];
+      // Include index so IDs are always unique even when Date.now() repeats
+      const id = `${Date.now()}_${i}_${Math.random().toString(36).slice(2)}`;
+      const url = URL.createObjectURL(f);
+      // Always use the filename as the display name — never ID3 tags which
+      // often contain garbage like "01" or "Track 1".
+      const name = fileNameToTitle(f.name);
+      const dur = await getAudioDuration(url);
+      await saveAudio(id, f);
+      meta.push({ id, name, duration: dur });
+      newTracks.push({ id, name, url, duration: dur });
+    }
+
     lsSet("vibra_track_meta", meta);
 
     setTracks((prev) => {
