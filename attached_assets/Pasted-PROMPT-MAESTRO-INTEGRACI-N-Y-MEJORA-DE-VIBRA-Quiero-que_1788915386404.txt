@@ -1,0 +1,575 @@
+PROMPT MAESTRO — INTEGRACIÓN Y MEJORA DE VIBRA
+
+Quiero que trabajes sobre la aplicación Vibra que ya existe actualmente y que integres en ella todas las mejoras, funcionalidades, componentes, diseños, lógica, recursos y elementos reutilizables que sean aprovechables del archivo ZIP que acabo de proporcionarte.
+
+1. OBJETIVO PRINCIPAL
+
+El objetivo NO es crear una aplicación nueva.
+
+El objetivo es:
+
+«Tomar la aplicación Vibra existente como proyecto principal, analizar completamente el ZIP proporcionado y trasladar a Vibra todo aquello que pueda mejorarla, complementarla o corregirla, manteniendo y protegiendo todo lo que ya funciona correctamente.»
+
+La versión final debe ser una Vibra mejorada, no una copia del ZIP.
+
+---
+
+2. REGLA PRINCIPAL: VIBRA ES LA APLICACIÓN BASE
+
+Considera la aplicación Vibra que ya existe en el proyecto como la fuente principal y oficial.
+
+El ZIP es únicamente una fuente de mejoras, referencias y componentes reutilizables.
+
+Por lo tanto:
+
+- NO reemplaces Vibra completamente por el contenido del ZIP.
+- NO borres funcionalidades existentes de Vibra simplemente porque no aparecen en el ZIP.
+- NO reconstruyas la aplicación desde cero si no es necesario.
+- NO supongas que todo lo que existe en el ZIP debe utilizarse.
+- NO copies código innecesario.
+- NO dupliques funcionalidades.
+- NO introduzcas componentes incompatibles.
+- NO elimines información, configuraciones o funcionalidades funcionales de Vibra sin una razón técnica justificada.
+
+La prioridad siempre será:
+
+Vibra actual + mejoras útiles del ZIP = nueva versión mejorada de Vibra.
+
+---
+
+3. PRIMER PASO OBLIGATORIO: ANALIZAR ANTES DE MODIFICAR
+
+Antes de realizar cualquier cambio, analiza exhaustivamente:
+
+A. Aplicación Vibra actual
+
+Identifica:
+
+- estructura del proyecto;
+- frontend;
+- backend;
+- base de datos;
+- rutas;
+- componentes;
+- páginas;
+- navegación;
+- estilos;
+- sistema de diseño;
+- lógica de negocio;
+- autenticación;
+- permisos;
+- configuración;
+- dependencias;
+- APIs;
+- almacenamiento;
+- archivos multimedia;
+- variables de entorno;
+- funcionalidades existentes;
+- funcionalidades incompletas;
+- errores conocidos;
+- posibles puntos de conflicto.
+
+B. Archivo ZIP
+
+Analiza todo su contenido.
+
+Identifica:
+
+- estructura;
+- código;
+- componentes;
+- páginas;
+- funcionalidades;
+- estilos;
+- diseños;
+- imágenes;
+- iconos;
+- recursos;
+- configuraciones;
+- dependencias;
+- lógica;
+- APIs;
+- esquemas de datos;
+- utilidades;
+- animaciones;
+- mejoras de UX/UI;
+- correcciones;
+- nuevas funcionalidades;
+- cualquier otro recurso reutilizable.
+
+NO te limites a revisar los nombres de los archivos.
+
+Debes comprender qué hace realmente cada parte relevante.
+
+---
+
+4. HACER UNA COMPARACIÓN ENTRE AMBOS
+
+Después del análisis, compara Vibra con el ZIP.
+
+Clasifica cada elemento encontrado en una de estas categorías:
+
+CATEGORÍA 1 — INTEGRAR
+
+Elementos del ZIP que claramente mejoran Vibra y pueden incorporarse de forma segura.
+
+CATEGORÍA 2 — ADAPTAR
+
+Elementos útiles que no pueden copiarse directamente porque utilizan una arquitectura, estructura, nombres, dependencias o lógica diferente.
+
+En estos casos:
+
+«adapta la funcionalidad al sistema actual de Vibra en lugar de reemplazar Vibra.»
+
+CATEGORÍA 3 — REUTILIZAR PARCIALMENTE
+
+Elementos donde solamente una parte resulta útil.
+
+Extrae únicamente lo necesario.
+
+CATEGORÍA 4 — NO UTILIZAR
+
+Elementos que:
+
+- sean redundantes;
+- sean incompatibles;
+- empeoren Vibra;
+- estén obsoletos;
+- tengan dependencias innecesarias;
+- generen conflictos;
+- no aporten valor;
+- o no sean técnicamente seguros de integrar.
+
+No los incorpores.
+
+CATEGORÍA 5 — REQUIERE DECISIÓN
+
+Si encuentras algo que podría ser valioso pero cuya integración implique una modificación arquitectónica importante o un riesgo considerable, NO lo implementes a ciegas.
+
+Primero identifica el problema y explica qué decisión sería necesaria.
+
+---
+
+5. CONSERVAR TODO LO BUENO DE VIBRA
+
+Durante la integración debes preservar:
+
+- funcionalidades existentes;
+- datos;
+- navegación;
+- usuarios;
+- configuraciones;
+- autenticación;
+- permisos;
+- integraciones;
+- diseño que ya funcione;
+- lógica de negocio;
+- compatibilidad;
+- estabilidad.
+
+Si el ZIP contiene una versión diferente de una funcionalidad que Vibra ya tiene:
+
+«No reemplaces automáticamente la versión existente.»
+
+Compara ambas y conserva la mejor solución.
+
+Si la del ZIP es superior, integra únicamente la mejora necesaria.
+
+---
+
+6. NO DUPLICAR FUNCIONALIDADES
+
+Antes de agregar una funcionalidad del ZIP, verifica si Vibra ya posee algo equivalente.
+
+Si ya existe:
+
+- no crees otra versión;
+- no dupliques componentes;
+- no dupliques rutas;
+- no dupliques tablas;
+- no dupliques lógica;
+- no dupliques servicios.
+
+En su lugar:
+
+«mejora la implementación existente utilizando las partes útiles del ZIP.»
+
+---
+
+7. INTEGRACIÓN DE UI/UX
+
+Si el ZIP contiene mejoras visuales, analiza:
+
+- diseño;
+- distribución;
+- navegación;
+- botones;
+- tarjetas;
+- formularios;
+- menús;
+- tipografías;
+- espaciados;
+- colores;
+- iconografía;
+- responsive design;
+- animaciones;
+- estados de carga;
+- mensajes de error;
+- estados vacíos;
+- accesibilidad;
+- experiencia móvil.
+
+Integra las mejoras que sean compatibles con la identidad y funcionamiento de Vibra.
+
+No conviertas Vibra en una copia visual del ZIP si eso perjudica su identidad.
+
+---
+
+8. INTEGRACIÓN DE FUNCIONALIDADES
+
+Si el ZIP contiene funcionalidades nuevas, determina:
+
+1. qué problema solucionan;
+2. cómo funcionan;
+3. si Vibra necesita esa funcionalidad;
+4. dónde debe integrarse;
+5. qué componentes existentes debe modificar;
+6. si necesita backend;
+7. si necesita base de datos;
+8. si necesita nuevas dependencias;
+9. si puede implementarse sin romper funcionalidades existentes.
+
+Después intégrala de la manera más limpia posible.
+
+---
+
+9. DEPENDENCIAS
+
+No instales dependencias simplemente porque aparecen en el ZIP.
+
+Antes verifica:
+
+- si Vibra ya tiene una dependencia equivalente;
+- si realmente es necesaria;
+- compatibilidad de versiones;
+- impacto en el proyecto;
+- tamaño;
+- seguridad;
+- mantenimiento;
+- posibles conflictos.
+
+Si puede hacerse utilizando dependencias que Vibra ya posee, prioriza esa opción.
+
+---
+
+10. BASE DE DATOS Y DATOS EXISTENTES
+
+Si las mejoras del ZIP requieren cambios en la base de datos:
+
+- analiza primero el esquema actual;
+- identifica qué debe agregarse;
+- evita destruir datos;
+- evita reemplazar tablas innecesariamente;
+- utiliza migraciones cuando corresponda;
+- conserva compatibilidad con los datos existentes.
+
+Nunca borres datos existentes simplemente para hacer funcionar una mejora.
+
+---
+
+11. BACKEND Y APIs
+
+Si el ZIP contiene backend, APIs o servicios:
+
+- analiza qué hacen;
+- verifica si Vibra ya tiene equivalentes;
+- adapta la lógica a la arquitectura existente;
+- evita duplicar endpoints;
+- conserva autenticación;
+- conserva autorización;
+- valida entradas;
+- maneja errores;
+- evita exponer información sensible.
+
+---
+
+12. SEGURIDAD
+
+Toda integración debe mantener o mejorar la seguridad de Vibra.
+
+Revisa especialmente:
+
+- autenticación;
+- autorización;
+- permisos;
+- validación de datos;
+- manejo de sesiones;
+- secretos;
+- variables de entorno;
+- APIs;
+- acceso a base de datos;
+- archivos subidos;
+- datos sensibles;
+- dependencias.
+
+NO copies secretos, API keys, tokens, contraseñas ni credenciales del ZIP.
+
+Si encuentras credenciales dentro del ZIP, no las incorpores.
+
+---
+
+13. ARCHIVOS Y RECURSOS
+
+Si el ZIP contiene:
+
+- imágenes;
+- iconos;
+- fuentes;
+- SVG;
+- videos;
+- sonidos;
+- recursos gráficos;
+
+determina cuáles pueden reutilizarse legal y técnicamente dentro de Vibra.
+
+Integra solamente los recursos realmente útiles.
+
+Evita archivos duplicados o innecesarios.
+
+---
+
+14. CALIDAD DEL CÓDIGO
+
+No quiero simplemente que copies código.
+
+Quiero que entregues una integración limpia.
+
+Por lo tanto:
+
+- respeta la arquitectura existente;
+- reutiliza componentes;
+- evita código duplicado;
+- evita soluciones temporales;
+- evita hacks;
+- mantén nombres coherentes;
+- conserva patrones existentes;
+- separa responsabilidades;
+- elimina código muerto introducido durante la integración;
+- mantén el proyecto mantenible.
+
+---
+
+15. VERIFICACIÓN DESPUÉS DE CADA BLOQUE IMPORTANTE
+
+Después de integrar cada conjunto importante de cambios:
+
+1. ejecuta la aplicación;
+2. comprueba que compile;
+3. comprueba que arranque;
+4. revisa errores;
+5. prueba las funcionalidades modificadas;
+6. verifica navegación;
+7. verifica frontend;
+8. verifica backend;
+9. verifica base de datos si aplica;
+10. corrige los errores encontrados.
+
+No esperes hasta el final para descubrir que la integración rompió la aplicación.
+
+---
+
+16. PRUEBAS DE REGRESIÓN
+
+Una vez terminada la integración, comprueba que las funcionalidades originales de Vibra continúan funcionando.
+
+Especialmente:
+
+- inicio;
+- registro;
+- login;
+- navegación;
+- funcionalidades principales;
+- formularios;
+- datos;
+- búsquedas;
+- perfiles;
+- configuraciones;
+- permisos;
+- APIs;
+- funcionalidades móviles;
+- responsive;
+- cualquier función crítica existente.
+
+Si Vibra tenía una funcionalidad antes de la integración, debe seguir funcionando después.
+
+---
+
+17. PRIORIDAD DE INTEGRACIÓN
+
+Prioriza las mejoras en este orden:
+
+PRIORIDAD ALTA
+
+- correcciones de errores;
+- mejoras de estabilidad;
+- problemas de seguridad;
+- funcionalidades críticas;
+- problemas de UX que impidan utilizar la aplicación;
+- mejoras claramente superiores a la implementación actual.
+
+PRIORIDAD MEDIA
+
+- mejoras visuales;
+- mejoras de navegación;
+- optimizaciones;
+- nuevas funcionalidades útiles;
+- mejoras de rendimiento.
+
+PRIORIDAD BAJA
+
+- detalles cosméticos;
+- elementos redundantes;
+- funcionalidades que no aporten una mejora significativa.
+
+---
+
+18. SI DOS IMPLEMENTACIONES SON DIFERENTES
+
+Cuando Vibra y el ZIP resuelvan el mismo problema de formas diferentes:
+
+No elijas automáticamente la del ZIP.
+
+Compara:
+
+- estabilidad;
+- simplicidad;
+- rendimiento;
+- seguridad;
+- mantenibilidad;
+- compatibilidad;
+- experiencia del usuario;
+- dependencias;
+- impacto sobre el resto del sistema.
+
+Después utiliza la mejor solución.
+
+---
+
+19. REGLA CONTRA LA DESTRUCCIÓN
+
+Esta regla es crítica:
+
+«NO destruyas una funcionalidad existente de Vibra para incorporar una mejora del ZIP salvo que exista una razón técnica clara y la nueva implementación sea realmente superior.»
+
+Si necesitas sustituir algo importante:
+
+1. identifica qué será sustituido;
+2. explica por qué;
+3. verifica dependencias;
+4. verifica impactos;
+5. realiza la sustitución de forma controlada;
+6. comprueba que no se hayan perdido funcionalidades.
+
+---
+
+20. SI ALGO NO PUEDE INTEGRARSE DIRECTAMENTE
+
+No descartes una mejora simplemente porque el código no sea compatible.
+
+Primero intenta:
+
+entender → adaptar → integrar.
+
+Si definitivamente no es viable, documenta:
+
+- qué era;
+- por qué era útil;
+- por qué no pudo integrarse;
+- qué parte sí pudo aprovecharse.
+
+---
+
+21. RESULTADO FINAL ESPERADO
+
+Al terminar quiero tener:
+
+«VIBRA MEJORADA, utilizando todo lo valioso y técnicamente aprovechable del ZIP, pero conservando la identidad, arquitectura, datos y funcionalidades importantes de la aplicación Vibra original.»
+
+No quiero un proyecto híbrido desordenado.
+
+Quiero una aplicación coherente.
+
+---
+
+22. INFORME FINAL
+
+Cuando termines, proporciona un resumen estructurado con:
+
+A. MEJORAS INTEGRADAS
+
+Lista de todas las mejoras que incorporaste.
+
+B. ELEMENTOS ADAPTADOS
+
+Qué elementos del ZIP tuvieron que modificarse para funcionar en Vibra.
+
+C. ELEMENTOS NO UTILIZADOS
+
+Qué elementos descartaste y por qué.
+
+D. ARCHIVOS MODIFICADOS
+
+Lista de archivos importantes modificados.
+
+E. ARCHIVOS NUEVOS
+
+Lista de archivos nuevos creados.
+
+F. DEPENDENCIAS
+
+Dependencias agregadas, eliminadas o modificadas.
+
+G. BASE DE DATOS
+
+Cambios realizados, si corresponde.
+
+H. PRUEBAS
+
+Qué pruebas ejecutaste y cuáles fueron sus resultados.
+
+I. PROBLEMAS PENDIENTES
+
+Cualquier problema que no hayas podido resolver.
+
+J. ESTADO FINAL
+
+Indica claramente:
+
+Vibra está lista / Vibra necesita correcciones / Vibra no puede ejecutarse correctamente
+
+y explica brevemente el motivo.
+
+---
+
+23. REGLA FINAL
+
+Antes de terminar pregúntate:
+
+«"¿Estoy realmente mejorando Vibra o simplemente estoy copiando el ZIP?"»
+
+Si la respuesta es copiar, detente y reorganiza la integración.
+
+El objetivo final es:
+
+VIBRA ORIGINAL + TODO LO ÚTIL DEL ZIP + ADAPTACIÓN CORRECTA + SIN PÉRDIDA DE FUNCIONALIDADES + SIN DUPLICACIONES + SIN ERRORES.
+
+Trabaja de forma progresiva, verificable y segura.
+
+Primero analiza.
+Después compara.
+Después planifica.
+Después integra.
+Después prueba.
+Finalmente verifica toda la aplicación.
+
+No empieces modificando archivos hasta haber entendido suficientemente ambos proyectos.
